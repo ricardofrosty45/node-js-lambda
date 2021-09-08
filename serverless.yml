@@ -12,6 +12,8 @@ provider:
   memorySize: 256
   stage: ${opt:stage, 'dev'}
   region: sa-east-1
+  environment:
+    AUCTIONS_TABLE_NAME: AuctionsTable
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -22,7 +24,7 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource:
-        - arn:aws:dynamodb:sa-east-1:321101419579:table/AuctionsTable
+        - arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/AuctionsTable
   
 resources:
   Resources:
@@ -44,6 +46,23 @@ functions:
       - http:
           method: POST
           path: /auction
+  GetAllAuctionsHandler:
+    handler: src/handlers/GetAllAuctionsHandler.handler
+    events:
+      - http:
+          method: GET
+          path: /auction
+  GetAuctionsHandler:
+    handler: src/handlers/GetAuctionHandler.handler
+    events:
+      - http:
+          path: /auction/{id}
+          method: GET
+          request:
+            parameters:
+              paths:
+                id: true
+          
 custom:
   bundle:
     linting: false
